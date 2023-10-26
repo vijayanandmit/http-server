@@ -22,13 +22,13 @@ func main() {
 			os.Exit(1)
 		}
 		data := make([]byte, 1024)
-		n, err := conn.Read(data)
+		_, err = conn.Read(data)
 		if err != nil {
 			fmt.Println("Error reading data from connection: ", err.Error())
 			os.Exit(1)
 		}
 
-		request := strings.Split(string(n), "\r\n")
+		request := strings.Split(string(data), "\r\n")
 		startLine := request[0]
 
 		target := strings.Fields(startLine)[1]
