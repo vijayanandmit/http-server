@@ -55,7 +55,7 @@ func main() {
 		return
 	}
 
-	path := parts[0]
+	path := parts[1]
 
 	// Check if the path is "/"
 	if path == "/\r\n" {
