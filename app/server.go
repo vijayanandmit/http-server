@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"fmt"
 	"strings"
 
@@ -9,7 +11,7 @@ import (
 	"os"
 )
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, dir string) {
 	defer conn.Close()
 	data := make([]byte, 1024)
 	_, err := conn.Read(data)
@@ -28,15 +30,27 @@ func handleConnection(conn net.Conn) {
 	} else if target[0:6] == "/echo/" {
 		random_str := target[6:]
 		writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(random_str), random_str)
-		fmt.Printf("Request: %v\n", request)
-		fmt.Printf("Response: %v\n", writeBuf)
 		conn.Write([]byte(writeBuf))
 	} else if target[0:11] == "/user-agent" {
 		agentText := useragent[12:]
 		writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(agentText), agentText)
-		fmt.Printf("Request: %v\n", request)
-		fmt.Printf("Response: %v\n", writeBuf)
 		conn.Write([]byte(writeBuf))
+	} else if target[0:7] == "/files/" {
+		filepath := dir + "/" + target[7:]
+		fileContent, err := os.ReadFile(filepath)
+		var b bytes.Buffer
+		if os.IsNotExist(err) {
+			b.WriteString("HTTP/1.1 404 Not Found\r\n\r\n")
+			fmt.Printf("Request: %v\n", request)
+			fmt.Printf("filepath: %v\n", filepath)
+			fmt.Printf("Response: %v\n", b.String())
+		} else {
+			b.WriteString("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n")
+			fmt.Fprintf(&b, "Content-Length: %d\r\n\r\n%s", len(fileContent), fileContent)
+			fmt.Printf("Request: %v\n", request)
+			fmt.Printf("Response: %v\n", b.String())
+		}
+		conn.Write(b.Bytes())
 	} else {
 		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
@@ -45,6 +59,10 @@ func handleConnection(conn net.Conn) {
 
 }
 func main() {
+
+	dir := flag.String("directory", "", "")
+	flag.Parse()
+
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -56,6 +74,6 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, *dir)
 	}
 }
