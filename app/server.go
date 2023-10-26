@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"strings"
+
 	// Uncomment this block to pass the first stage
 	"net"
 	"os"
@@ -18,12 +21,15 @@ func main() {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
 	}
+	defer l.Close()
 
 	con, err := l.Accept()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
+
+	defer con.Close()
 
 	//      buffer := make([]byte, 1024)
 	//		n, err := con.Read(buffer)
@@ -36,6 +42,30 @@ func main() {
 		fmt.Println("Error sending response:", err)
 	}
 
-	con.Close()
+	reader := bufio.NewReader(con)
+	requestLine, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading request:", err)
+		return
+	}
+
+	parts := strings.Fields(requestLine)
+	if len(parts) < 2 {
+		fmt.Println("Invalid request")
+		return
+	}
+
+	path := parts[1]
+
+	// Check if the path is "/"
+	if path == "/\r\n" {
+		// Respond with a 200 OK for the root path
+		response := "HTTP/1.1 200 OK\r\n\r\n"
+		con.Write([]byte(response))
+	} else {
+		// Respond with a 404 Not Found for other paths
+		response := "HTTP/1.1 404 Not Found\r\n\r\n"
+		con.Write([]byte(response))
+	}
 
 }
