@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 
 	// Uncomment this block to pass the first stage
@@ -11,16 +12,7 @@ import (
 	"os"
 )
 
-func handleConnection(conn net.Conn, dir string) {
-	defer conn.Close()
-	data := make([]byte, 1024)
-	_, err := conn.Read(data)
-	if err != nil {
-		fmt.Println("Error reading data from connection: ", err.Error())
-		os.Exit(1)
-	}
-
-	request := strings.Split(string(data), "\r\n")
+func handleGETRequest(conn net.Conn, request []string, dir string) {
 	startLine := request[0]
 	useragent := request[2]
 
@@ -41,14 +33,14 @@ func handleConnection(conn net.Conn, dir string) {
 		var b bytes.Buffer
 		if os.IsNotExist(err) {
 			b.WriteString("HTTP/1.1 404 Not Found\r\n\r\n")
-			fmt.Printf("Request: %v\n", request)
-			fmt.Printf("filepath: %v\n", filepath)
-			fmt.Printf("Response: %v\n", b.String())
+			//			fmt.Printf("Request: %v\n", request)
+			//			fmt.Printf("filepath: %v\n", filepath)
+			//			fmt.Printf("Response: %v\n", b.String())
 		} else {
 			b.WriteString("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n")
 			fmt.Fprintf(&b, "Content-Length: %d\r\n\r\n%s", len(fileContent), fileContent)
-			fmt.Printf("Request: %v\n", request)
-			fmt.Printf("Response: %v\n", b.String())
+			//			fmt.Printf("Request: %v\n", request)
+			//			fmt.Printf("Response: %v\n", b.String())
 		}
 		conn.Write(b.Bytes())
 	} else {
@@ -58,6 +50,44 @@ func handleConnection(conn net.Conn, dir string) {
 	conn.Close()
 
 }
+
+func handlePOSTRequest(conn net.Conn, request []string, dir string) {
+	startLine := request[0]
+	target := strings.Fields(startLine)[1]
+	if target[0:7] == "/files/" {
+		// fileContent := strings.Join(request[6:], "\r\n")
+		fileContent := request[6]
+		fileContentLen, _ := strconv.Atoi(request[3][16:])
+		filepath := dir + "/" + target[7:]
+		fp, _ := os.Create(filepath)
+		defer fp.Close()
+		fp.Write([]byte(fileContent)[:fileContentLen])
+		var b bytes.Buffer
+		b.WriteString("HTTP/1.1 201 Created\r\n\r\n")
+		conn.Write(b.Bytes())
+	} else {
+		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+	}
+}
+func handleConnection(conn net.Conn, dir string) {
+	defer conn.Close()
+	readBuf := make([]byte, 1024)
+	_, err := conn.Read(readBuf)
+	if err != nil {
+		fmt.Printf("Read error: %s\n", err)
+	}
+	request := strings.Split(string(readBuf), "\r\n")
+	startLine := request[0]
+	// target := strings.Fields(startLine)[1]
+	if startLine[:3] == "GET" {
+		handleGETRequest(conn, request, dir)
+	} else if startLine[:4] == "POST" {
+		handlePOSTRequest(conn, request, dir)
+	} else {
+		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+	}
+}
+
 func main() {
 
 	dir := flag.String("directory", "", "")
