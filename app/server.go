@@ -7,57 +7,54 @@ import (
 
 	// Uncomment this block to pass the first stage
 	"net"
+	"os"
 )
 
 func main() {
-	// Create a TCP listener
+	// You can use print statements as follows for debugging, they'll be visible when running tests.
+	fmt.Println("Logs from your program will appear here!")
+
+	// Uncomment this block to pass the first stage
+	//
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
-		return
+		os.Exit(1)
 	}
 	defer l.Close()
 
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			fmt.Println("Error accepting connection:", err)
-			continue
-		}
-
-		go handleConnection(conn)
+	con, err := l.Accept()
+	if err != nil {
+		fmt.Println("Error accepting connection: ", err.Error())
+		os.Exit(1)
 	}
-}
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
+	defer con.Close()
 
-	// Read the HTTP request from the connection
-	reader := bufio.NewReader(conn)
+	//      buffer := make([]byte, 1024)
+	//		n, err := con.Read(buffer)
+
+	response := "HTTP/1.1 200 OK\r\n\r\n"
+
+	_, err = con.Write([]byte(response))
+
+	if err != nil {
+		fmt.Println("Error sending response:", err)
+	}
+
+	reader := bufio.NewReader(con)
 	requestLine, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading request:", err)
 		return
 	}
 
-	// Extract the path from the request
-	parts := strings.Fields(requestLine)
-	if len(parts) < 2 {
-		fmt.Println("Invalid request")
-		return
-	}
-
-	path := parts[0]
-
-	// Check if the path is "/"
-	if strings.Fields(path)[1] == "/" {
-		// Respond with a 200 OK for the root path
-		response := "HTTP/1.1 200 OK\r\n\r\n"
-		conn.Write([]byte(response))
+	request := strings.Split(string(requestLine), "\r\n")
+	startLine := request[0]
+	if strings.Fields(startLine)[1] == "/" {
+		con.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	} else {
-		// Respond with a 404 Not Found for other paths
-		response := "HTTP/1.1 404 Not Found\r\n\r\n"
-		conn.Write([]byte(response))
+		con.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
 
 }
