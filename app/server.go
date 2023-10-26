@@ -20,7 +20,6 @@ func extractPath(data string) string {
 
 func main() {
 	var httpVersion = "HTTP/1.1"
-	1
 	var statusAccepted int
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
