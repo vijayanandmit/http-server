@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"strings"
 
@@ -39,11 +38,10 @@ func main() {
 		fmt.Println("Error sending response:", err)
 	}
 
-	reader := bufio.NewReader(con)
-	requestLine, err := reader.ReadString('\n')
+	buff := make([]byte, 1024)
+	_, err = con.Read(buff)
 	if err != nil {
-		fmt.Println("Error reading request:", err)
-		return
+		fmt.Printf("Read error: %s\n", err)
 	}
 
 	request := strings.Split(string(requestLine), "\r\n")
