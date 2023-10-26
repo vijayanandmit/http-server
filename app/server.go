@@ -31,8 +31,15 @@ func main() {
 	request := strings.Split(string(buff), "\r\n")
 	startLine := request[0]
 
-	if strings.Fields(startLine)[1] == "/" || strings.HasPrefix(startLine, "/echo/") {
+	if strings.Fields(startLine)[1] == "/" {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	} else if strings.HasPrefix(startLine, "/echo/") {
+		// Extract the echoed content
+		echoedContent := startLine[len("/echo/"):]
+
+		// Respond with a 200 OK with headers and echoed content
+		response := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + fmt.Sprint(len(echoedContent)) + "\r\n\r\n" + echoedContent
+		conn.Write([]byte(response))
 	} else {
 		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
