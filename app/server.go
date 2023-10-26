@@ -27,7 +27,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("Read error: %s\n", err)
 	}
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+
 	request := strings.Split(string(buff), "\r\n")
 	startLine := request[0]
 	if strings.Fields(startLine)[1] == "/" {
