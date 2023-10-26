@@ -51,7 +51,5 @@ func main() {
 		} else {
 			conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 		}
-
-		conn.Close()
 	}
 }
