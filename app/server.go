@@ -37,20 +37,16 @@ func main() {
 			conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 		} else if target[0:6] == "/echo/" {
 			random_str := target[6:]
-			writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\n \
-			Content-Type: text/plain\r\n \
-			Content-Length: %d\r\n\r\n \
-			%s", len(random_str), random_str)
+			writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(random_str), random_str)
 			fmt.Printf("Request: %v\n", request)
 			fmt.Printf("Response: %v\n", writeBuf)
 			conn.Write([]byte(writeBuf))
 		} else if target[0:11] == "/user-agent" {
 			agentText := useragent[12:]
-			writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\n \
-			Content-Type: text/plain\r\n \
-			Content-Length: %d\r\n\r\n \
-			%s", len(agentText), agentText)
-
+			writeBuf := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(agentText), agentText)
+			fmt.Printf("Request: %v\n", request)
+			fmt.Printf("Response: %v\n", writeBuf)
+			conn.Write([]byte(writeBuf))
 		} else {
 			conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 		}
