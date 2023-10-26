@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	//is this working?
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
