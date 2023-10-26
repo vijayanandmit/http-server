@@ -31,9 +31,6 @@ func main() {
 
 	defer con.Close()
 
-	//      buffer := make([]byte, 1024)
-	//		n, err := con.Read(buffer)
-
 	response := "HTTP/1.1 200 OK\r\n\r\n"
 
 	_, err = con.Write([]byte(response))
