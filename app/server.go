@@ -47,7 +47,7 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	path := parts[1]
+	path := parts[0]
 
 	// Check if the path is "/"
 	if path == "/\r\n" {
