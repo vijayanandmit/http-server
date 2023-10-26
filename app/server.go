@@ -30,9 +30,11 @@ func main() {
 
 	request := strings.Split(string(buff), "\r\n")
 	startLine := request[0]
+
 	if strings.Fields(startLine)[1] == "/" {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	} else {
 		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 	}
+
 }
