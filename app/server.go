@@ -49,16 +49,11 @@ func main() {
 		return
 	}
 
-	parts := strings.Fields(requestLine)
-	if len(parts) < 2 {
-		fmt.Println("Invalid request")
-		return
-	}
-
-	path := parts[1]
+	request := strings.Split(string(requestLine), "\r\n")
+	path := request[0]
 
 	// Check if the path is "/"
-	if path == "/\r\n" {
+	if path == "/" {
 		// Respond with a 200 OK for the root path
 		response := "HTTP/1.1 200 OK\r\n\r\n"
 		con.Write([]byte(response))
