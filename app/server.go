@@ -40,12 +40,24 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	request := strings.Split(string(requestLine), "\r\n")
-	startLine := request[0]
-	if strings.Fields(startLine)[1] == "/" {
-		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	// Extract the path from the request
+	parts := strings.Fields(requestLine)
+	if len(parts) < 2 {
+		fmt.Println("Invalid request")
+		return
+	}
+
+	path := parts[0]
+
+	// Check if the path is "/"
+	if strings.Fields(path)[1] == "/" {
+		// Respond with a 200 OK for the root path
+		response := "HTTP/1.1 200 OK\r\n\r\n"
+		conn.Write([]byte(response))
 	} else {
-		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+		// Respond with a 404 Not Found for other paths
+		response := "HTTP/1.1 404 Not Found\r\n\r\n"
+		conn.Write([]byte(response))
 	}
 
 }
